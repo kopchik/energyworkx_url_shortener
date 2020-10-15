@@ -1,0 +1,3 @@
+[flake8]
+# should match black's limit
+max-line-length = 88
