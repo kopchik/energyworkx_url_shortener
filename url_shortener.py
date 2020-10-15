@@ -4,6 +4,7 @@ import string
 from fastapi import FastAPI, HTTPException, Response
 from pydantic import AnyHttpUrl, BaseModel, typing, validator
 
+from storage import DuplicateKey, Storage
 
 SHORTCODE_LENGTH = 6
 ALLOWED_CHARS = set(string.ascii_lowercase + string.digits + "_")
@@ -11,27 +12,6 @@ ALLOWED_CHARS = set(string.ascii_lowercase + string.digits + "_")
 app = FastAPI(
     title="Repo Octosearch", description="A code for an interview.", version="1.0.0"
 )
-
-
-class DuplicateShortcode(Exception):
-    """The code is already in use"""
-
-
-class Storage:
-    allowed_chars = string.ascii_lowercase + string.digits + "_"
-    code_lenght = 6
-
-    def __init__(self):
-        self.storage = {}
-
-    def put(self, code, data):
-        if code in self.storage:
-            raise DuplicateShortcode
-        self.storage[code] = data
-        return code
-
-    def get(self, code):
-        return self.storage.get(code)
 
 
 storage = Storage()
@@ -78,8 +58,8 @@ async def post(request: ShortenRequest):
         shortcode = generate_unique_code()
     url = request.url
     try:
-        shortcode = storage.put(code=shortcode, data=url)
-    except DuplicateShortcode:
+        shortcode = storage.put(shortcode, url)
+    except DuplicateKey:
         raise AlreadyInUse(f"Code is already used: {shortcode}")
     return ShortenResponse(shortcode=shortcode)
 
