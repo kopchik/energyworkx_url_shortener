@@ -1,5 +1,6 @@
 import random
 import string
+from datetime import datetime
 
 from fastapi import FastAPI, HTTPException, Response
 from pydantic import AnyHttpUrl, BaseModel, typing, validator
@@ -74,9 +75,9 @@ def validate_shortcode(shortcode):
         )
 
 
-def generate_unique_code(self):
-    while True:
-        code = [random.choice(self.allowed_chars) for _ in range(self.code_lenght)]
+def generate_unique_code():
+    while True:  # not the best approach to collision resolution
+        code = [random.choice(list(ALLOWED_CHARS)) for _ in range(SHORTCODE_LENGTH)]
         code = "".join(code)
         if not storage.get(code):
             return code
@@ -102,10 +103,16 @@ async def get(shortcode: str, response: Response):
 #########
 
 
-@app.get("/{shortcode}/status")
-async def get_stats():
-    {
-        "created": "2017-05-10T20:45:00.000Z",
-        "lastRedirect": "2018-05-16T10:16:24.666Z",
-        "redirectCount": 6,
-    }
+class StatsResponse(BaseModel):
+    created: datetime
+    lastRedirect: datetime
+    redirectCount: int
+
+
+@app.get("/{shortcode}/stats")
+async def get_stats(shortcode):
+    stats = storage.get_stats(shortcode)
+    if stats is None:
+        raise HTTPException(status_code=404)
+
+    return stats
