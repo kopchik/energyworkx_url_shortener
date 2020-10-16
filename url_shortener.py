@@ -11,7 +11,7 @@ SHORTCODE_LENGTH = 6
 ALLOWED_CHARS = set(string.ascii_lowercase + string.digits + "_")
 
 app = FastAPI(
-    title="Repo Octosearch", description="A code for an interview.", version="1.0.0"
+    title="URL Shortener", description="A code for an interview.", version="1.0.0"
 )
 
 
